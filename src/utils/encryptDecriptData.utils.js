@@ -28,7 +28,7 @@ const getKey = (environmentName) => {
   return key;
 };
 
-const encryptStudentPii = (value) => {
+const encryptSensitiveData = (value) => {
   if (value === null || value === undefined) {
     return value;
   }
@@ -36,7 +36,7 @@ const encryptStudentPii = (value) => {
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv(
     ALGORITHM,
-    getKey('STUDENT_PII_ENCRYPTION_KEY'),
+    getKey('SENSITIVE_DATA_ENCRYPTION_KEY'),
     iv
   );
   const ciphertext = Buffer.concat([
@@ -53,7 +53,7 @@ const encryptStudentPii = (value) => {
   ].join('.');
 };
 
-const decryptStudentPii = (value) => {
+const decryptSensitiveData = (value) => {
   if (value === null || value === undefined) {
     return value;
   }
@@ -68,16 +68,13 @@ const decryptStudentPii = (value) => {
     !encodedCiphertext ||
     extra.length > 0
   ) {
-    throw new appError(
-      500,
-      'Stored student sensitive data has an invalid format'
-    );
+    throw new appError(500, 'Stored sensitive data has an invalid format');
   }
 
   try {
     const decipher = createDecipheriv(
       ALGORITHM,
-      getKey('STUDENT_PII_ENCRYPTION_KEY'),
+      getKey('SENSITIVE_DATA_ENCRYPTION_KEY'),
       Buffer.from(encodedIv, 'base64')
     );
     decipher.setAuthTag(Buffer.from(encodedAuthTag, 'base64'));
@@ -98,14 +95,14 @@ const decryptStudentPii = (value) => {
   }
 };
 
-const hashStudentPii = (value) => {
+const hashSensitiveData = (value) => {
   if (value === null || value === undefined) {
     return value;
   }
 
-  return createHmac('sha256', getKey('STUDENT_PII_HASH_KEY'))
+  return createHmac('sha256', getKey('SENSITIVE_DATA_HASH_KEY'))
     .update(value, 'utf8')
     .digest('hex');
 };
 
-export { encryptStudentPii, decryptStudentPii, hashStudentPii };
+export { encryptSensitiveData, decryptSensitiveData, hashSensitiveData };

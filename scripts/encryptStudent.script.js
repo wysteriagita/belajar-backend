@@ -1,9 +1,9 @@
 import 'dotenv/config';
 import { prisma } from '../src/config/database.js';
 import {
-  encryptStudentPii,
-  hashStudentPii,
-} from '../src/utils/studentPii.utils.js';
+  encryptSensitiveData,
+  hashSensitiveData,
+} from '../src/utils/encryptDecriptData.utils.js';
 
 const BATCH_SIZE = 100;
 
@@ -37,13 +37,13 @@ const encryptExistingStudentPii = async () => {
       const data = {};
 
       if (student.nik !== null && student.nikHash === null) {
-        data.nik = encryptStudentPii(student.nik);
-        data.nikHash = hashStudentPii(student.nik);
+        data.nik = encryptSensitiveData(student.nik);
+        data.nikHash = hashSensitiveData(student.nik);
       }
 
       if (student.nomorKk !== null && student.nomorKkHash === null) {
-        data.nomorKk = encryptStudentPii(student.nomorKk);
-        data.nomorKkHash = hashStudentPii(student.nomorKk);
+        data.nomorKk = encryptSensitiveData(student.nomorKk);
+        data.nomorKkHash = hashSensitiveData(student.nomorKk);
       }
 
       await prisma.siswa.update({

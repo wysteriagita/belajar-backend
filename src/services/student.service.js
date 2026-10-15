@@ -11,10 +11,10 @@ import {
 } from '../repositories/student.repository.js';
 import appError from '../utils/appError.utils.js';
 import {
-  decryptStudentPii,
-  encryptStudentPii,
-  hashStudentPii,
-} from '../utils/studentPii.utils.js';
+  decryptSensitiveData,
+  encryptSensitiveData,
+  hashSensitiveData,
+} from '../utils/encryptDecriptData.utils.js';
 
 const sensitiveFields = ['nik', 'nomorKk'];
 
@@ -39,8 +39,8 @@ const prepareStudentData = (data) => {
       validateSensitiveIdentifier(field, value);
     }
 
-    prepared[`${field}Hash`] = hashStudentPii(value);
-    prepared[field] = encryptStudentPii(value);
+    prepared[`${field}Hash`] = hashSensitiveData(value);
+    prepared[field] = encryptSensitiveData(value);
   }
 
   return prepared;
@@ -51,7 +51,7 @@ const maskSensitiveIdentifier = (value) => {
     return value;
   }
 
-  const plaintext = decryptStudentPii(value);
+  const plaintext = decryptSensitiveData(value);
   return `${'*'.repeat(Math.max(plaintext.length - 4, 0))}${plaintext.slice(-4)}`;
 };
 
@@ -150,7 +150,7 @@ const findStudentByNik = async ({ nik, actor }) => {
   requireAdmin(actor);
   validateSensitiveIdentifier('nik', nik);
   const student = await withDatabaseErrorHandling(() =>
-    findStudentByNikHash(hashStudentPii(nik))
+    findStudentByNikHash(hashSensitiveData(nik))
   );
 
   if (!student) {
@@ -164,7 +164,7 @@ const findStudentsByNomorKk = async ({ nomorKk, actor }) => {
   requireAdmin(actor);
   validateSensitiveIdentifier('nomorKk', nomorKk);
   const students = await withDatabaseErrorHandling(() =>
-    findStudentsByNomorKkHash(hashStudentPii(nomorKk))
+    findStudentsByNomorKkHash(hashSensitiveData(nomorKk))
   );
 
   return students.map(toPublicStudent);
@@ -207,8 +207,8 @@ const findStudentPiiById = async ({ id, actor }) => {
 
   return {
     ...student,
-    nik: decryptStudentPii(student.nik),
-    nomorKk: decryptStudentPii(student.nomorKk),
+    nik: decryptSensitiveData(student.nik),
+    nomorKk: decryptSensitiveData(student.nomorKk),
   };
 };
 

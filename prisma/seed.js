@@ -4,9 +4,9 @@ import { fakerID_ID as faker } from '@faker-js/faker';
 import { loginBodySchema } from '../src/validator/auth.validator.js';
 import { studentBody } from '../src/validator/student.validator.js';
 import {
-  encryptStudentPii,
-  hashStudentPii,
-} from '../src/utils/studentPii.utils.js';
+  encryptSensitiveData,
+  hashSensitiveData,
+} from '../src/utils/encryptDecriptData.utils.js';
 import { prisma } from '../src/config/database.js';
 
 if (process.env.NODE_ENV !== 'development') {
@@ -161,10 +161,10 @@ const runSeed = async () => {
 
     const { nik, nomorKk, ...studentData } = student;
     const encryptedPii = {
-      nik: encryptStudentPii(nik),
-      nikHash: hashStudentPii(nik),
-      nomorKk: encryptStudentPii(nomorKk),
-      nomorKkHash: hashStudentPii(nomorKk),
+      nik: encryptSensitiveData(nik),
+      nikHash: hashSensitiveData(nik),
+      nomorKk: encryptSensitiveData(nomorKk),
+      nomorKkHash: hashSensitiveData(nomorKk),
     };
 
     await prisma.siswa.upsert({
