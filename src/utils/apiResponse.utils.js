@@ -1,6 +1,6 @@
 const sendResponse = (res, statusCode, message, data = null) => {
   return res.status(statusCode).json({
-    status: 'succes',
+    status: 'success',
     message,
     data,
   });
@@ -11,18 +11,18 @@ const sendPaginatedResponse = (
   statusCode,
   message,
   data = [],
-  { page, limit, totalItem }
+  { page, limit, totalItem } = {}
 ) => {
   const currentPage = Number(page);
   const currentLimit = Number(limit);
-  const totalPages = Math.ceil(totalItem / currentLimit);
+  const totalPages = currentLimit > 0 ? Math.ceil(totalItem / currentLimit) : 0;
 
   return res.status(statusCode).json({
-    status: 'succes',
+    status: 'success',
     message,
     data,
     pagination: {
-      pages: currentPage,
+      page: currentPage,
       limit: currentLimit,
       totalItem,
       totalPages,
