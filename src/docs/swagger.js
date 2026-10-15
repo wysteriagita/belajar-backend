@@ -9,6 +9,16 @@ import {
   resetPasswordBodySchema,
   resetPasswordParamsSchema,
 } from '../validator/auth.validator.js';
+import {
+  studentBody,
+  studentIdParamsSchema,
+  studentListQuerySchema,
+  studentNikParamsSchema,
+  studentNisnParamsSchema,
+  studentNisParamsSchema,
+  studentNomorKkParamsSchema,
+  studentUpdateBodySchema,
+} from '../validator/student.validator.js';
 
 const registry = new OpenAPIRegistry();
 
@@ -151,6 +161,284 @@ registry.registerPath({
     401: errorResponse('Missing or invalid bearer token.'),
     403: errorResponse('Only administrators can reset user passwords.'),
     404: errorResponse('User not found.'),
+  },
+});
+
+const studentResponseSchema = z
+  .object({
+    id: z.string().uuid(),
+    nisn: z.string(),
+    nis: z.string(),
+    nik: z.string().nullable(),
+    nomorKk: z.string().nullable(),
+    nama: z.string(),
+    jenisKelamin: z.enum(['LAKI_LAKI', 'PEREMPUAN']),
+    tempatLahir: z.string(),
+    tanggalLahir: z.string().date(),
+    agama: z.enum([
+      'ISLAM',
+      'KRISTEN',
+      'KATOLIK',
+      'HINDU',
+      'BUDDHA',
+      'KONGHUCU',
+    ]),
+    alamat: z.string(),
+    rt: z.string().nullable(),
+    rw: z.string().nullable(),
+    kelurahan: z.string().nullable(),
+    kecamatan: z.string().nullable(),
+    kabupaten: z.string().nullable(),
+    provinsi: z.string().nullable(),
+    kodePos: z.string().nullable(),
+    telepon: z.string().nullable(),
+    email: z.string().nullable(),
+    status: z.enum(['AKTIF', 'LULUS', 'MUTASI', 'DROP_OUT']),
+    orangTuaId: z.string().uuid().nullable(),
+    waliId: z.string().uuid().nullable(),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+  })
+  .openapi('Student', {
+    description:
+      'NIK and KK are masked in standard responses. Sensitive values are encrypted at rest.',
+  });
+
+const studentSuccessResponseSchema = successResponseSchema(
+  studentResponseSchema
+);
+const studentArrayResponseSchema = successResponseSchema(
+  z.array(studentResponseSchema)
+);
+const studentListResponseSchema = z
+  .object({
+    status: z.literal('success'),
+    message: z.string(),
+    data: z.array(studentResponseSchema),
+    pagination: z.object({
+      page: z.number(),
+      limit: z.number(),
+      totalItem: z.number(),
+      totalPages: z.number(),
+      hasNextPage: z.boolean(),
+      hasPrevPage: z.boolean(),
+    }),
+  })
+  .openapi('StudentListResponse');
+const studentPiiResponseSchema = successResponseSchema(
+  studentResponseSchema.extend({
+    nik: z.string().nullable(),
+    nomorKk: z.string().nullable(),
+  })
+).openapi('StudentPiiResponse');
+
+const studentQueryParams = studentListQuerySchema;
+const studentIdParams = studentIdParamsSchema;
+
+registry.registerPath({
+  method: 'get',
+  path: '/v1/students',
+  summary: 'List students',
+  description:
+    'Returns active students. NIK and KK values are masked. Search covers name, NIS, and NISN.',
+  tags: ['Students'],
+  security: [{ bearerAuth: [] }],
+  request: { query: studentQueryParams },
+  responses: {
+    200: jsonResponse(
+      'Students retrieved successfully.',
+      studentListResponseSchema
+    ),
+    401: errorResponse('Missing or invalid bearer token.'),
+    400: errorResponse('Invalid query parameters.'),
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/v1/students',
+  summary: 'Create a student',
+  description: 'NIK and KK are encrypted before being stored.',
+  tags: ['Students'],
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: { 'application/json': { schema: studentBody } },
+    },
+  },
+  responses: {
+    201: jsonResponse(
+      'Student created successfully.',
+      studentSuccessResponseSchema
+    ),
+    400: errorResponse('Invalid student data.'),
+    401: errorResponse('Missing or invalid bearer token.'),
+    409: errorResponse(
+      'A student with the provided unique data already exists.'
+    ),
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/v1/students/by-nisn/{nisn}',
+  summary: 'Get a student by NISN',
+  tags: ['Students'],
+  security: [{ bearerAuth: [] }],
+  request: { params: studentNisnParamsSchema },
+  responses: {
+    200: jsonResponse(
+      'Student retrieved successfully.',
+      studentSuccessResponseSchema
+    ),
+    400: errorResponse('NISN must contain exactly 10 digits.'),
+    401: errorResponse('Missing or invalid bearer token.'),
+    404: errorResponse('Student not found.'),
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/v1/students/by-nis/{nis}',
+  summary: 'Get a student by NIS',
+  tags: ['Students'],
+  security: [{ bearerAuth: [] }],
+  request: { params: studentNisParamsSchema },
+  responses: {
+    200: jsonResponse(
+      'Student retrieved successfully.',
+      studentSuccessResponseSchema
+    ),
+    400: errorResponse('NIS must contain exactly 10 digits.'),
+    401: errorResponse('Missing or invalid bearer token.'),
+    404: errorResponse('Student not found.'),
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/v1/students/by-nik/{nik}',
+  summary: 'Find a student by NIK',
+  description:
+    'Administrator only. Search uses a keyed hash; returned NIK remains masked.',
+  tags: ['Students'],
+  security: [{ bearerAuth: [] }],
+  request: { params: studentNikParamsSchema },
+  responses: {
+    200: jsonResponse(
+      'Student retrieved successfully.',
+      studentSuccessResponseSchema
+    ),
+    400: errorResponse('NIK must contain exactly 16 digits.'),
+    401: errorResponse('Missing or invalid bearer token.'),
+    403: errorResponse('Only administrators can search by NIK.'),
+    404: errorResponse('Student not found.'),
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/v1/students/by-nomor-kk/{nomorKk}',
+  summary: 'Find students by family card number',
+  description:
+    'Administrator only. Multiple students may share the same family card number.',
+  tags: ['Students'],
+  security: [{ bearerAuth: [] }],
+  request: { params: studentNomorKkParamsSchema },
+  responses: {
+    200: jsonResponse(
+      'Students retrieved successfully.',
+      studentArrayResponseSchema
+    ),
+    400: errorResponse('Family card number must contain exactly 16 digits.'),
+    401: errorResponse('Missing or invalid bearer token.'),
+    403: errorResponse('Only administrators can search by family card number.'),
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/v1/students/{id}/pii',
+  summary: 'Get unmasked student NIK and KK',
+  description:
+    'Administrator only. Returns sensitive identifiers in plaintext after decrypting them.',
+  tags: ['Students'],
+  security: [{ bearerAuth: [] }],
+  request: { params: studentIdParams },
+  responses: {
+    200: jsonResponse(
+      'Sensitive student data retrieved.',
+      studentPiiResponseSchema
+    ),
+    400: errorResponse('Invalid student ID.'),
+    401: errorResponse('Missing or invalid bearer token.'),
+    403: errorResponse('Only administrators can view student NIK and KK.'),
+    404: errorResponse('Student not found.'),
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/v1/students/{id}',
+  summary: 'Get a student by ID',
+  description: 'NIK and KK values are masked in the response.',
+  tags: ['Students'],
+  security: [{ bearerAuth: [] }],
+  request: { params: studentIdParams },
+  responses: {
+    200: jsonResponse(
+      'Student retrieved successfully.',
+      studentSuccessResponseSchema
+    ),
+    400: errorResponse('Invalid student ID.'),
+    401: errorResponse('Missing or invalid bearer token.'),
+    404: errorResponse('Student not found.'),
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/v1/students/{id}',
+  summary: 'Update a student',
+  description:
+    'Provide one or more student fields. NIK and KK are encrypted before being stored.',
+  tags: ['Students'],
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: studentIdParams,
+    body: {
+      content: { 'application/json': { schema: studentUpdateBodySchema } },
+    },
+  },
+  responses: {
+    200: jsonResponse(
+      'Student updated successfully.',
+      studentSuccessResponseSchema
+    ),
+    400: errorResponse('Invalid student ID or request body.'),
+    401: errorResponse('Missing or invalid bearer token.'),
+    404: errorResponse('Student not found.'),
+    409: errorResponse(
+      'A student with the provided unique data already exists.'
+    ),
+  },
+});
+
+registry.registerPath({
+  method: 'delete',
+  path: '/v1/students/{id}',
+  summary: 'Soft delete a student',
+  tags: ['Students'],
+  security: [{ bearerAuth: [] }],
+  request: { params: studentIdParams },
+  responses: {
+    200: jsonResponse(
+      'Student deleted successfully.',
+      studentSuccessResponseSchema
+    ),
+    400: errorResponse('Invalid student ID.'),
+    401: errorResponse('Missing or invalid bearer token.'),
+    404: errorResponse('Student not found.'),
   },
 });
 
