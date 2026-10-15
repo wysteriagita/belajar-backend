@@ -21,6 +21,12 @@ const findUserById = (id) =>
     select: publicUserSelect,
   });
 
+const findUserByIdWithPassword = (id) =>
+  prisma.user.findFirst({
+    where: { id, deletedAt: null },
+    select: { ...publicUserSelect, password: true },
+  });
+
 const createUser = ({ username, password, role, guruId }) =>
   prisma.user.create({
     data: {
@@ -54,6 +60,7 @@ const softDeleteUser = (id) =>
 export {
   findUserByUsername,
   findUserById,
+  findUserByIdWithPassword,
   createUser,
   updateUser,
   softDeleteUser,

@@ -20,7 +20,10 @@ const auth = (req, res, next) => {
     if (
       typeof payload !== 'object' ||
       payload === null ||
-      Array.isArray(payload)
+      Array.isArray(payload) ||
+      typeof payload.sub !== 'string' ||
+      payload.sub.length === 0 ||
+      typeof payload.role !== 'string'
     ) {
       return next(new appError(401, 'Invalid authentication token'));
     }
