@@ -156,7 +156,10 @@ model Siswa {
   id           String        @id @default(uuid(7)) @db.Uuid
   nisn         String        @unique @db.VarChar(10)
   nis          String        @unique @db.VarChar(10)
-  nik          String?       @unique @db.VarChar(16)
+  nik          String?       @db.Text
+  nikHash      String?       @unique @map("nik_hash") @db.Char(64)
+  nomorKk      String?       @map("nomor_kk") @db.Text
+  nomorKkHash  String?       @map("nomor_kk_hash") @db.Char(64)
   nama         String        @db.VarChar(100)
   jenisKelamin Gender        @map("jenis_kelamin")
   tempatLahir  String        @map("tempat_lahir") @db.VarChar(100)
@@ -193,6 +196,7 @@ model Siswa {
   deletedAt    DateTime?     @map("deleted_at")
 
   @@index([deletedAt, nisn, nama])
+  @@index([nomorKkHash])
   @@map("siswa")
 }
 
