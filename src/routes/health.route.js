@@ -1,5 +1,5 @@
 import express from 'express';
-import { sendResponse } from '../utils/apiResponse.utils';
+import { sendResponse } from '../utils/apiResponse.utils.js';
 
 const router = express.Router();
 
