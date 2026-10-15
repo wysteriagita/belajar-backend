@@ -116,7 +116,7 @@ const runSeed = async () => {
     });
   }
 
-  for (let index = 1; index <= 5; index += 1) {
+  for (let index = 1; index <= 15; index += 1) {
     const sequence = index;
     const nis = String(9000000000 + sequence).padStart(10, '0');
     const household = households[Math.floor((index - 1) / 2)];
