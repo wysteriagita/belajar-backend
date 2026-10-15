@@ -8,7 +8,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.js\"",
-    "db:encrypt-student-pii": "node scripts/encrypt-student-pii.js"
+    "db:encrypt-student-pii": "node scripts/encrypt-student-pii.js",
+    "seed:dev": "NODE_ENV=development node prisma/seed.js"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,7 @@
   "homepage": "https://github.com/wysteriagita/belajar-backend#readme",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@faker-js/faker": "^10.6.0",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
