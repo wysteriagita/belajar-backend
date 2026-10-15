@@ -13,3 +13,399 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+enum Gender {
+  LAKI_LAKI
+  PEREMPUAN
+}
+
+enum Religion {
+  ISLAM
+  KRISTEN
+  KATOLIK
+  HINDU
+  BUDDHA
+  KONGHUCU
+}
+
+enum StudentStatus {
+  AKTIF
+  LULUS
+  MUTASI
+  DROP_OUT
+}
+
+enum Semester {
+  GANJIL
+  GENAP
+}
+
+enum Role {
+  ADMIN
+  KEPALA_SEKOLAH
+  GURU
+  STAF
+}
+
+enum Day {
+  SENIN
+  SELASA
+  RABU
+  KAMIS
+  JUMAT
+}
+
+enum TipeUjian {
+  TENGAH_SEMESTER
+  AKHIR_SEMESTER
+}
+
+model User {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  username  String    @unique @db.VarChar(50)
+  password  String    @db.VarChar(255)
+  role      Role      @default(GURU)
+
+  guruId    String?   @unique @map("guru_id") @db.Uuid
+  guru      Guru?     @relation(fields: [guruId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([deletedAt, username])
+  @@map("user")
+}
+
+model OrangTua {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  namaAyah      String?   @map("nama_ayah") @db.VarChar(100)
+  nikAyah       String?   @map("nik_ayah") @db.VarChar(16)
+  pekerjaanAyah String?   @map("pekerjaan_ayah") @db.VarChar(50)
+  namaIbu       String?   @map("nama_ibu") @db.VarChar(100)
+  nikIbu        String?   @map("nik_ibu") @db.VarChar(16)
+  pekerjaanIbu  String?   @map("pekerjaan_ibu") @db.VarChar(50)
+  telepon       String?   @db.VarChar(20)
+  alamat        String?   @db.VarChar(255)
+
+  siswa         Siswa[]
+
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  @@index([deletedAt])
+  @@map("orang_tua")
+}
+
+model Wali {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  nama      String    @db.VarChar(100)
+  nik       String?   @db.VarChar(16)
+  hubungan  String?   @db.VarChar(50)
+  pekerjaan String?   @db.VarChar(50)
+  telepon   String?   @db.VarChar(20)
+  alamat    String?   @db.VarChar(255)
+
+  siswa     Siswa[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([deletedAt, nama])
+  @@map("wali")
+}
+
+model Guru {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  nip          String?   @unique @db.VarChar(18)
+  nuptk        String?   @unique @db.VarChar(16)
+  nik          String    @unique @db.VarChar(16)
+  nama         String    @db.VarChar(100)
+  jenisKelamin Gender    @map("jenis_kelamin")
+  tempatLahir  String    @map("tempat_lahir") @db.VarChar(100)
+  tanggalLahir DateTime  @map("tanggal_lahir") @db.Date
+  telepon      String?   @db.VarChar(20)
+  email        String?   @unique @db.VarChar(100)
+  tmt          DateTime  @map("tmt") @db.Date
+
+  alamat       String    @db.VarChar(255)
+  rt           String?   @db.VarChar(5)
+  rw           String?   @db.VarChar(5)
+  kelurahan    String?   @db.VarChar(100)
+  kecamatan    String?   @db.VarChar(100)
+  kabupaten    String?   @db.VarChar(100)
+  provinsi     String?   @db.VarChar(100)
+  kodePos      String?   @map("kode_pos") @db.VarChar(5)
+
+  user         User?
+  waliKelas    Kelas[]   @relation("WaliKelasRelasi")
+  jadwal       Jadwal[]
+
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  @@index([deletedAt, nama])
+  @@map("guru")
+}
+
+model Siswa {
+  id           String        @id @default(uuid(7)) @db.Uuid
+  nisn         String        @unique @db.VarChar(10)
+  nis          String        @unique @db.VarChar(10)
+  nik          String?       @unique @db.VarChar(16)
+  nama         String        @db.VarChar(100)
+  jenisKelamin Gender        @map("jenis_kelamin")
+  tempatLahir  String        @map("tempat_lahir") @db.VarChar(100)
+  tanggalLahir DateTime      @map("tanggal_lahir") @db.Date
+  agama        Religion      @default(ISLAM)
+
+  alamat       String        @db.VarChar(255)
+  rt           String?       @db.VarChar(5)
+  rw           String?       @db.VarChar(5)
+  kelurahan    String?       @db.VarChar(100)
+  kecamatan    String?       @db.VarChar(100)
+  kabupaten    String?       @db.VarChar(100)
+  provinsi     String?       @db.VarChar(100)
+  kodePos      String?       @map("kode_pos") @db.VarChar(5)
+
+  telepon      String?       @db.VarChar(20)
+  email        String?       @db.VarChar(100)
+  status       StudentStatus @default(AKTIF)
+
+  orangTuaId   String?       @map("orang_tua_id") @db.Uuid
+  orangTua     OrangTua?     @relation(fields: [orangTuaId], references: [id], onDelete: SetNull)
+
+  waliId       String?       @map("wali_id") @db.Uuid
+  wali         Wali?         @relation(fields: [waliId], references: [id], onDelete: SetNull)
+
+  anggotaKelas    AnggotaKelas[]
+  nilaiHarian     NilaiHarian[]
+  nilaiUjian      NilaiUjian[]
+  nilaiRapor      NilaiRapor[]
+  ekstrakurikuler Ekstrakurikuler[]
+
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  deletedAt    DateTime?     @map("deleted_at")
+
+  @@index([deletedAt, nisn, nama])
+  @@map("siswa")
+}
+
+model TahunAjar {
+  id                 String               @id @default(uuid(7)) @db.Uuid
+  tahun              String               @db.VarChar(9) // Contoh: "2025/2026"
+  semester           Semester
+  isAktif            Boolean              @default(false) @map("is_aktif")
+
+  kelas              Kelas[]
+  tujuanPembelajaran TujuanPembelajaran[]
+  nilaiUjian         NilaiUjian[]
+  nilaiRapor         NilaiRapor[]
+  ekstrakurikuler    Ekstrakurikuler[]
+
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  deletedAt          DateTime?            @map("deleted_at")
+
+  @@unique([tahun, semester])
+  @@index([deletedAt, isAktif])
+  @@map("tahun_ajar")
+}
+
+model Kelas {
+  id                 String               @id @default(uuid(7)) @db.Uuid
+  nama               String               @db.VarChar(50) // "1-A"
+  tingkat            Int                  // 1 s/d 6
+
+  tahunAjarId        String               @map("tahun_ajar_id") @db.Uuid
+  tahunAjar          TahunAjar            @relation(fields: [tahunAjarId], references: [id], onDelete: Restrict)
+
+  waliKelasId        String?              @map("wali_kelas_id") @db.Uuid
+  waliKelas          Guru?                @relation("WaliKelasRelasi", fields: [waliKelasId], references: [id], onDelete: SetNull)
+
+  anggotaKelas       AnggotaKelas[]
+  jadwal             Jadwal[]
+  tujuanPembelajaran TujuanPembelajaran[]
+
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  deletedAt          DateTime?            @map("deleted_at")
+
+  @@unique([nama, tahunAjarId])
+  @@index([deletedAt, tahunAjarId])
+  @@map("kelas")
+}
+
+model AnggotaKelas {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  siswaId   String    @map("siswa_id") @db.Uuid
+  siswa     Siswa     @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+
+  kelasId   String    @map("kelas_id") @db.Uuid
+  kelas     Kelas     @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@unique([siswaId, kelasId])
+  @@index([deletedAt, siswaId, kelasId])
+  @@map("anggota_kelas")
+}
+
+model Mapel {
+  id                 String               @id @default(uuid(7)) @db.Uuid
+  kode               String               @unique @db.VarChar(10)
+  nama               String               @db.VarChar(100)
+
+  jadwal             Jadwal[]
+  tujuanPembelajaran TujuanPembelajaran[]
+  nilaiUjian         NilaiUjian[]
+  nilaiRapor         NilaiRapor[]
+
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  deletedAt          DateTime?            @map("deleted_at")
+
+  @@index([deletedAt, nama])
+  @@map("mapel")
+}
+
+model Jadwal {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  hari       Day
+  jamMulai   DateTime  @map("jam_mulai") @db.Time
+  jamSelesai DateTime  @map("jam_selesai") @db.Time
+
+  kelasId    String    @map("kelas_id") @db.Uuid
+  kelas      Kelas     @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+
+  mapelId    String    @map("mapel_id") @db.Uuid
+  mapel      Mapel     @relation(fields: [mapelId], references: [id], onDelete: Cascade)
+
+  guruId     String    @map("guru_id") @db.Uuid
+  guru       Guru      @relation(fields: [guruId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  @@index([deletedAt, kelasId, hari])
+  @@map("jadwal")
+}
+
+model TujuanPembelajaran {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  kode        String?       @db.VarChar(20)
+  deskripsi   String        @db.Text
+
+  tahunAjarId String        @map("tahun_ajar_id") @db.Uuid
+  tahunAjar   TahunAjar     @relation(fields: [tahunAjarId], references: [id], onDelete: Cascade)
+
+  kelasId     String        @map("kelas_id") @db.Uuid
+  kelas       Kelas         @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+
+  mapelId     String        @map("mapel_id") @db.Uuid
+  mapel       Mapel         @relation(fields: [mapelId], references: [id], onDelete: Cascade)
+
+  nilaiHarian NilaiHarian[]
+
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  deletedAt   DateTime?     @map("deleted_at")
+
+  @@index([deletedAt, tahunAjarId, kelasId, mapelId])
+  @@map("tujuan_pembelajaran")
+}
+
+model NilaiHarian {
+  id                   String             @id @default(uuid(7)) @db.Uuid
+  nilai                Int                @db.SmallInt // 0 s/d 100
+
+  siswaId              String             @map("siswa_id") @db.Uuid
+  siswa                Siswa              @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+
+  tujuanPembelajaranId String             @map("tujuan_pembelajaran_id") @db.Uuid
+  tujuanPembelajaran   TujuanPembelajaran @relation(fields: [tujuanPembelajaranId], references: [id], onDelete: Cascade)
+
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+  deletedAt            DateTime?          @map("deleted_at")
+
+  @@unique([siswaId, tujuanPembelajaranId])
+  @@index([deletedAt, siswaId])
+  @@map("nilai_harian")
+}
+
+model NilaiUjian {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  tipe        TipeUjian
+  nilai       Int       @db.SmallInt // 0 s/d 100
+
+  siswaId     String    @map("siswa_id") @db.Uuid
+  siswa       Siswa     @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+
+  mapelId     String    @map("mapel_id") @db.Uuid
+  mapel       Mapel     @relation(fields: [mapelId], references: [id], onDelete: Cascade)
+
+  tahunAjarId String    @map("tahun_ajar_id") @db.Uuid
+  tahunAjar   TahunAjar @relation(fields: [tahunAjarId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  @@unique([siswaId, mapelId, tahunAjarId, tipe])
+  @@index([deletedAt, siswaId, mapelId, tahunAjarId])
+  @@map("nilai_ujian")
+}
+
+model NilaiRapor {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  nilaiAkhir       Int       @map("nilai_akhir") @db.SmallInt // 0 s/d 100
+  capaianTertinggi String?   @map("capaian_tertinggi") @db.Text
+  capaianTerendah  String?   @map("capaian_terendah") @db.Text
+
+  siswaId          String    @map("siswa_id") @db.Uuid
+  siswa            Siswa     @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+
+  mapelId          String    @map("mapel_id") @db.Uuid
+  mapel            Mapel     @relation(fields: [mapelId], references: [id], onDelete: Cascade)
+
+  tahunAjarId      String    @map("tahun_ajar_id") @db.Uuid
+  tahunAjar        TahunAjar @relation(fields: [tahunAjarId], references: [id], onDelete: Restrict)
+
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  @@unique([siswaId, mapelId, tahunAjarId])
+  @@index([deletedAt, siswaId, tahunAjarId])
+  @@map("nilai_rapor")
+}
+
+model Ekstrakurikuler {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  nama        String    @db.VarChar(100)
+  predikat    String    @db.VarChar(10)
+  keterangan  String?   @db.Text
+
+  siswaId     String    @map("siswa_id") @db.Uuid
+  siswa       Siswa     @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+
+  tahunAjarId String    @map("tahun_ajar_id") @db.Uuid
+  tahunAjar   TahunAjar @relation(fields: [tahunAjarId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  @@unique([siswaId, nama, tahunAjarId])
+  @@index([deletedAt, siswaId, tahunAjarId])
+  @@map("ekstrakurikuler")
+}
