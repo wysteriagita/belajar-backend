@@ -38,7 +38,7 @@ router.get(
   validate(studentNomorKkValidator),
   getStudentsByNomorKk
 );
-router.get('/:id/pii', validate(studentIdValidator), getStudentPiiById);
+router.get('/:id/decry', validate(studentIdValidator), getStudentPiiById);
 router.get('/:id', validate(studentIdValidator), getStudentById);
 router.patch('/:id', validate(updateStudentValidator), updateStudent);
 router.delete('/:id', validate(studentIdValidator), deleteStudent);

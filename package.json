@@ -8,7 +8,6 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.js\"",
-    "db:encrypt-student-pii": "node scripts/encrypt-student-pii.js",
     "seed:dev": "NODE_ENV=development node prisma/seed.js"
   },
   "repository": {
