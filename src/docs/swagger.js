@@ -169,12 +169,17 @@ const studentResponseSchema = z
     id: z.string().uuid(),
     nisn: z.string(),
     nis: z.string(),
-    nik: z.string().nullable(),
-    nomorKk: z.string().nullable(),
+    nik: z.string().nullable().openapi({
+      description: 'Masked NIK; only the last 4 digits are visible.',
+    }),
+    nomorKk: z.string().nullable().openapi({
+      description:
+        'Masked family card number; only the last 4 digits are visible.',
+    }),
     nama: z.string(),
     jenisKelamin: z.enum(['LAKI_LAKI', 'PEREMPUAN']),
     tempatLahir: z.string(),
-    tanggalLahir: z.string().date(),
+    tanggalLahir: z.string().datetime(),
     agama: z.enum([
       'ISLAM',
       'KRISTEN',
@@ -201,7 +206,7 @@ const studentResponseSchema = z
   })
   .openapi('Student', {
     description:
-      'NIK and KK are masked in standard responses. Sensitive values are encrypted at rest.',
+      'NIK and family card number are masked in standard responses (only the last 4 digits are visible). Nullable database fields are returned as null when unset. Sensitive values are encrypted at rest.',
   });
 
 const studentSuccessResponseSchema = successResponseSchema(
@@ -240,7 +245,7 @@ registry.registerPath({
   path: '/v1/students',
   summary: 'List students',
   description:
-    'Returns active students. NIK and KK values are masked. Search covers name, NIS, and NISN.',
+    'Returns students that have not been soft-deleted; this includes every student status. NIK and family card number are masked (only the last 4 digits are visible). Search covers name, NIS, and NISN.',
   tags: ['Students'],
   security: [{ bearerAuth: [] }],
   request: { query: studentQueryParams },
@@ -358,10 +363,10 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'get',
-  path: '/v1/students/{id}/pii',
+  path: '/v1/students/{id}/decry',
   summary: 'Get unmasked student NIK and KK',
   description:
-    'Administrator only. Returns sensitive identifiers in plaintext after decrypting them.',
+    'Administrator only. Returns NIK and family card number in plaintext after decrypting them. Other student fields match the standard student response.',
   tags: ['Students'],
   security: [{ bearerAuth: [] }],
   request: { params: studentIdParams },
