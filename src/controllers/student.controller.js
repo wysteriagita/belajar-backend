@@ -1,5 +1,6 @@
 import {
   createStudent as createStudentService,
+  createStudents as createStudentsService,
   findStudentById as findStudentByIdService,
   findStudentPiiById as findStudentPiiByIdService,
   findStudents as findStudentsService,
@@ -70,6 +71,11 @@ const createStudent = catchAsync(async (req, res) => {
   return sendResponse(res, 201, 'Student created successfully', student);
 });
 
+const createStudents = catchAsync(async (req, res) => {
+  const students = await createStudentsService(req.validated.body);
+  return sendResponse(res, 201, 'Students created successfully', students);
+});
+
 const updateStudent = catchAsync(async (req, res) => {
   const student = await updateStudentService(
     req.validated.params.id,
@@ -89,6 +95,7 @@ export {
   getStudentById,
   getStudentPiiById,
   createStudent,
+  createStudents,
   updateStudent,
   deleteStudent,
 };

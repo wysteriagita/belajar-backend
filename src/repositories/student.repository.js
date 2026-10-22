@@ -135,6 +135,16 @@ const createStudent = (data) =>
     select: studentSelect,
   });
 
+const createStudents = (students) =>
+  prisma.$transaction(
+    students.map((student) =>
+      prisma.siswa.create({
+        data: pickStudentFields(student),
+        select: studentSelect,
+      })
+    )
+  );
+
 const updateStudent = (id, data) =>
   prisma.siswa.update({
     where: { id, deletedAt: null },
@@ -153,6 +163,7 @@ export {
   findStudents,
   findStudentById,
   createStudent,
+  createStudents,
   updateStudent,
   softDeleteStudent,
 };

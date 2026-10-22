@@ -3,6 +3,7 @@ import auth from '../../middlewares/auth.middleware.js';
 import validate from '../../middlewares/validate.middleware.js';
 import {
   createStudentValidator,
+  createStudentsValidator,
   studentIdValidator,
   studentListValidator,
   studentSensitiveSearchValidator,
@@ -10,6 +11,7 @@ import {
 } from '../../validator/student.validator.js';
 import {
   createStudent,
+  createStudents,
   deleteStudent,
   getStudentById,
   getStudentPiiById,
@@ -24,6 +26,7 @@ router.use(auth);
 
 router.get('/', validate(studentListValidator), getStudents);
 router.post('/', validate(createStudentValidator), createStudent);
+router.post('/bulk', validate(createStudentsValidator), createStudents);
 router.post(
   '/search',
   validate(studentSensitiveSearchValidator),

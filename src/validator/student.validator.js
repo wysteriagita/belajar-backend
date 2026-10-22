@@ -103,6 +103,10 @@ const createStudentValidator = z.object({
   body: studentBody,
 });
 
+const createStudentsValidator = z.object({
+  body: z.array(studentBody).min(1).max(100),
+});
+
 const studentSensitiveSearchValidator = z.object({
   body: studentSensitiveSearchBodySchema,
 });
@@ -123,6 +127,7 @@ export {
   studentListValidator,
   studentIdValidator,
   createStudentValidator,
+  createStudentsValidator,
   studentSensitiveSearchValidator,
   updateStudentValidator,
 };

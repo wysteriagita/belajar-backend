@@ -1,5 +1,6 @@
 import {
   createStudent as createStudentRecord,
+  createStudents as createStudentRecords,
   findStudentById as findStudentRecordById,
   findStudents as findStudentRecords,
   softDeleteStudent as softDeleteStudentRecord,
@@ -137,6 +138,14 @@ const createStudent = async (data) => {
   return toPublicStudent(student);
 };
 
+const createStudents = async (students) => {
+  const createdStudents = await withDatabaseErrorHandling(() =>
+    createStudentRecords(students.map(prepareStudentData))
+  );
+
+  return createdStudents.map(toPublicStudent);
+};
+
 const updateStudent = async (id, data) => {
   const student = await withDatabaseErrorHandling(() =>
     updateStudentRecord(id, prepareStudentData(data))
@@ -176,6 +185,7 @@ export {
   findStudentById,
   findStudentPiiById,
   createStudent,
+  createStudents,
   updateStudent,
   softDeleteStudent,
 };
