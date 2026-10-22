@@ -1,6 +1,8 @@
 import express from 'express';
-import auth from '../../middlewares/auth.middleware.js';
+import auth from '../../middlewares/authenticate.middleware.js';
+import authorize from '../../middlewares/authorize.middleware.js';
 import validate from '../../middlewares/validate.middleware.js';
+import { PERMISSIONS } from '../../policies/authorization.policy.js';
 import {
   changePasswordValidator,
   loginValidator,
@@ -32,6 +34,7 @@ router.patch(
 router.patch(
   '/users/:userId/password',
   auth,
+  authorize(PERMISSIONS.USERS_RESET_PASSWORD),
   validate(resetPasswordValidator),
   resetUserPasswordByAdmin
 );

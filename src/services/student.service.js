@@ -8,6 +8,10 @@ import {
 } from '../repositories/student.repository.js';
 import appError from '../utils/appError.utils.js';
 import {
+  PERMISSIONS,
+  requirePermission,
+} from '../policies/authorization.policy.js';
+import {
   decryptSensitiveData,
   encryptSensitiveData,
   hashSensitiveData,
@@ -64,15 +68,6 @@ const toPublicStudent = (student) => {
   };
 };
 
-const requireAdmin = (actor) => {
-  if (actor?.role !== 'ADMIN') {
-    throw new appError(
-      403,
-      'Only administrators can search by student NIK or KK'
-    );
-  }
-};
-
 const withDatabaseErrorHandling = async (operation) => {
   try {
     return await operation();
@@ -99,7 +94,7 @@ const withDatabaseErrorHandling = async (operation) => {
 const findStudents = async (filters) => {
   const { actor, nik, nomorKk, ...studentFilters } = filters;
   if (nik !== undefined || nomorKk !== undefined) {
-    requireAdmin(actor);
+    requirePermission(actor, PERMISSIONS.STUDENTS_ACCESS_SENSITIVE_DATA);
   }
 
   const result = await withDatabaseErrorHandling(() =>
@@ -162,8 +157,8 @@ const softDeleteStudent = async (id) => {
   return toPublicStudent(student);
 };
 
-const findStudentPiiById = async ({ id, actor }) => {
-  requireAdmin(actor);
+const getStudentWithDecryptedSensitiveDataById = async ({ id, actor }) => {
+  requirePermission(actor, PERMISSIONS.STUDENTS_ACCESS_SENSITIVE_DATA);
 
   const student = await withDatabaseErrorHandling(() =>
     findStudentRecordById(id)
@@ -183,7 +178,7 @@ const findStudentPiiById = async ({ id, actor }) => {
 export {
   findStudents,
   findStudentById,
-  findStudentPiiById,
+  getStudentWithDecryptedSensitiveDataById,
   createStudent,
   createStudents,
   updateStudent,

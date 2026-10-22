@@ -2,7 +2,7 @@ import {
   createStudent as createStudentService,
   createStudents as createStudentsService,
   findStudentById as findStudentByIdService,
-  findStudentPiiById as findStudentPiiByIdService,
+  getStudentWithDecryptedSensitiveDataById as getStudentWithDecryptedSensitiveDataByIdService,
   findStudents as findStudentsService,
   softDeleteStudent as softDeleteStudentService,
   updateStudent as updateStudentService,
@@ -54,7 +54,7 @@ const getStudentById = catchAsync(async (req, res) => {
 });
 
 const getStudentPiiById = catchAsync(async (req, res) => {
-  const student = await findStudentPiiByIdService({
+  const student = await getStudentWithDecryptedSensitiveDataByIdService({
     id: req.validated.params.id,
     actor: req.user,
   });

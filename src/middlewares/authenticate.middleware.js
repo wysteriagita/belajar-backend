@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import appError from '../utils/appError.utils.js';
 
-const auth = (req, res, next) => {
+const authenticate = (req, res, next) => {
   const authorization = req.get('authorization');
   const token = authorization?.match(/^Bearer\s+(\S+)$/i)?.[1];
 
@@ -39,4 +39,4 @@ const auth = (req, res, next) => {
   }
 };
 
-export default auth;
+export default authenticate;

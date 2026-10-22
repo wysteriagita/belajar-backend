@@ -7,6 +7,10 @@ import {
   updateUser,
 } from '../repositories/user.repository.js';
 import appError from '../utils/appError.utils.js';
+import {
+  PERMISSIONS,
+  requirePermission,
+} from '../policies/authorization.policy.js';
 
 const SALT_ROUNDS = 12;
 
@@ -64,9 +68,7 @@ const changePassword = async ({ userId, currentPassword, newPassword }) => {
 };
 
 const resetUserPasswordByAdmin = async ({ admin, userId, newPassword }) => {
-  if (admin?.role !== 'ADMIN') {
-    throw new appError(403, 'Only administrators can reset user passwords');
-  }
+  requirePermission(admin, PERMISSIONS.USERS_RESET_PASSWORD);
 
   const user = await findUserById(userId);
   if (!user) {
