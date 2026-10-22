@@ -1,12 +1,8 @@
 import {
   createStudent as createStudentService,
   findStudentById as findStudentByIdService,
-  findStudentByNik as findStudentByNikService,
-  findStudentByNis as findStudentByNisService,
-  findStudentByNisn as findStudentByNisnService,
   findStudentPiiById as findStudentPiiByIdService,
   findStudents as findStudentsService,
-  findStudentsByNomorKk as findStudentsByNomorKkService,
   softDeleteStudent as softDeleteStudentService,
   updateStudent as updateStudentService,
 } from '../services/student.service.js';
@@ -31,35 +27,29 @@ const getStudents = catchAsync(async (req, res) => {
   );
 });
 
+const searchStudentsBySensitiveIdentifier = catchAsync(async (req, res) => {
+  const filters = req.validated.body;
+  const { students, totalItem } = await findStudentsService({
+    ...filters,
+    actor: req.user,
+  });
+
+  return sendPaginatedResponse(
+    res,
+    200,
+    'Students retrieved successfully',
+    students,
+    {
+      page: filters.page,
+      limit: filters.limit,
+      totalItem,
+    }
+  );
+});
+
 const getStudentById = catchAsync(async (req, res) => {
   const student = await findStudentByIdService(req.validated.params.id);
   return sendResponse(res, 200, 'Student retrieved successfully', student);
-});
-
-const getStudentByNisn = catchAsync(async (req, res) => {
-  const student = await findStudentByNisnService(req.validated.params.nisn);
-  return sendResponse(res, 200, 'Student retrieved successfully', student);
-});
-
-const getStudentByNis = catchAsync(async (req, res) => {
-  const student = await findStudentByNisService(req.validated.params.nis);
-  return sendResponse(res, 200, 'Student retrieved successfully', student);
-});
-
-const getStudentByNik = catchAsync(async (req, res) => {
-  const student = await findStudentByNikService({
-    nik: req.validated.params.nik,
-    actor: req.user,
-  });
-  return sendResponse(res, 200, 'Student retrieved successfully', student);
-});
-
-const getStudentsByNomorKk = catchAsync(async (req, res) => {
-  const students = await findStudentsByNomorKkService({
-    nomorKk: req.validated.params.nomorKk,
-    actor: req.user,
-  });
-  return sendResponse(res, 200, 'Students retrieved successfully', students);
 });
 
 const getStudentPiiById = catchAsync(async (req, res) => {
@@ -95,11 +85,8 @@ const deleteStudent = catchAsync(async (req, res) => {
 
 export {
   getStudents,
+  searchStudentsBySensitiveIdentifier,
   getStudentById,
-  getStudentByNisn,
-  getStudentByNis,
-  getStudentByNik,
-  getStudentsByNomorKk,
   getStudentPiiById,
   createStudent,
   updateStudent,

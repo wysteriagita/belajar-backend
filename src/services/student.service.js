@@ -1,11 +1,7 @@
 import {
   createStudent as createStudentRecord,
   findStudentById as findStudentRecordById,
-  findStudentByNis as findStudentRecordByNis,
-  findStudentByNisn as findStudentRecordByNisn,
-  findStudentByNikHash,
   findStudents as findStudentRecords,
-  findStudentsByNomorKkHash,
   softDeleteStudent as softDeleteStudentRecord,
   updateStudent as updateStudentRecord,
 } from '../repositories/student.repository.js';
@@ -100,8 +96,19 @@ const withDatabaseErrorHandling = async (operation) => {
 };
 
 const findStudents = async (filters) => {
+  const { actor, nik, nomorKk, ...studentFilters } = filters;
+  if (nik !== undefined || nomorKk !== undefined) {
+    requireAdmin(actor);
+  }
+
   const result = await withDatabaseErrorHandling(() =>
-    findStudentRecords(filters)
+    findStudentRecords({
+      ...studentFilters,
+      ...(nik !== undefined && { nikHash: hashSensitiveData(nik) }),
+      ...(nomorKk !== undefined && {
+        nomorKkHash: hashSensitiveData(nomorKk),
+      }),
+    })
   );
 
   return {
@@ -120,54 +127,6 @@ const findStudentById = async (id) => {
   }
 
   return toPublicStudent(student);
-};
-
-const findStudentByNisn = async (nisn) => {
-  const student = await withDatabaseErrorHandling(() =>
-    findStudentRecordByNisn(nisn)
-  );
-
-  if (!student) {
-    throw new appError(404, 'Student not found');
-  }
-
-  return toPublicStudent(student);
-};
-
-const findStudentByNis = async (nis) => {
-  const student = await withDatabaseErrorHandling(() =>
-    findStudentRecordByNis(nis)
-  );
-
-  if (!student) {
-    throw new appError(404, 'Student not found');
-  }
-
-  return toPublicStudent(student);
-};
-
-const findStudentByNik = async ({ nik, actor }) => {
-  requireAdmin(actor);
-  validateSensitiveIdentifier('nik', nik);
-  const student = await withDatabaseErrorHandling(() =>
-    findStudentByNikHash(hashSensitiveData(nik))
-  );
-
-  if (!student) {
-    throw new appError(404, 'Student not found');
-  }
-
-  return toPublicStudent(student);
-};
-
-const findStudentsByNomorKk = async ({ nomorKk, actor }) => {
-  requireAdmin(actor);
-  validateSensitiveIdentifier('nomorKk', nomorKk);
-  const students = await withDatabaseErrorHandling(() =>
-    findStudentsByNomorKkHash(hashSensitiveData(nomorKk))
-  );
-
-  return students.map(toPublicStudent);
 };
 
 const createStudent = async (data) => {
@@ -215,10 +174,6 @@ const findStudentPiiById = async ({ id, actor }) => {
 export {
   findStudents,
   findStudentById,
-  findStudentByNisn,
-  findStudentByNis,
-  findStudentByNik,
-  findStudentsByNomorKk,
   findStudentPiiById,
   createStudent,
   updateStudent,

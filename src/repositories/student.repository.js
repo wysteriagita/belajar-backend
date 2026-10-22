@@ -66,6 +66,10 @@ const findStudents = async ({
   page = 1,
   limit = 10,
   search,
+  nisn,
+  nis,
+  nikHash,
+  nomorKkHash,
   status,
   jenisKelamin,
   agama,
@@ -87,6 +91,10 @@ const findStudents = async ({
 
   const where = {
     deletedAt: null,
+    ...(nisn !== undefined && { nisn }),
+    ...(nis !== undefined && { nis }),
+    ...(nikHash !== undefined && { nikHash }),
+    ...(nomorKkHash !== undefined && { nomorKkHash }),
     ...(status !== undefined && { status }),
     ...(jenisKelamin !== undefined && { jenisKelamin }),
     ...(agama !== undefined && { agama }),
@@ -119,31 +127,6 @@ const findStudentById = (id) =>
     select: studentSelect,
   });
 
-const findStudentByNisn = (nisn) =>
-  prisma.siswa.findFirst({
-    where: { nisn, deletedAt: null },
-    select: studentSelect,
-  });
-
-const findStudentByNis = (nis) =>
-  prisma.siswa.findFirst({
-    where: { nis, deletedAt: null },
-    select: studentSelect,
-  });
-
-const findStudentByNikHash = (nikHash) =>
-  prisma.siswa.findFirst({
-    where: { nikHash, deletedAt: null },
-    select: studentSelect,
-  });
-
-const findStudentsByNomorKkHash = (nomorKkHash) =>
-  prisma.siswa.findMany({
-    where: { nomorKkHash, deletedAt: null },
-    select: studentSelect,
-    orderBy: { nama: 'asc' },
-  });
-
 const createStudent = (data) =>
   prisma.siswa.create({
     data: pickStudentFields(data),
@@ -167,10 +150,6 @@ const softDeleteStudent = (id) =>
 export {
   findStudents,
   findStudentById,
-  findStudentByNisn,
-  findStudentByNis,
-  findStudentByNikHash,
-  findStudentsByNomorKkHash,
   createStudent,
   updateStudent,
   softDeleteStudent,

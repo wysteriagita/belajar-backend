@@ -5,22 +5,16 @@ import {
   createStudentValidator,
   studentIdValidator,
   studentListValidator,
-  studentNikValidator,
-  studentNisnValidator,
-  studentNisValidator,
-  studentNomorKkValidator,
+  studentSensitiveSearchValidator,
   updateStudentValidator,
 } from '../../validator/student.validator.js';
 import {
   createStudent,
   deleteStudent,
   getStudentById,
-  getStudentByNik,
-  getStudentByNis,
-  getStudentByNisn,
   getStudentPiiById,
   getStudents,
-  getStudentsByNomorKk,
+  searchStudentsBySensitiveIdentifier,
   updateStudent,
 } from '../../controllers/student.controller.js';
 
@@ -30,13 +24,10 @@ router.use(auth);
 
 router.get('/', validate(studentListValidator), getStudents);
 router.post('/', validate(createStudentValidator), createStudent);
-router.get('/by-nisn/:nisn', validate(studentNisnValidator), getStudentByNisn);
-router.get('/by-nis/:nis', validate(studentNisValidator), getStudentByNis);
-router.get('/by-nik/:nik', validate(studentNikValidator), getStudentByNik);
-router.get(
-  '/by-nomor-kk/:nomorKk',
-  validate(studentNomorKkValidator),
-  getStudentsByNomorKk
+router.post(
+  '/search',
+  validate(studentSensitiveSearchValidator),
+  searchStudentsBySensitiveIdentifier
 );
 router.get('/:id/decry', validate(studentIdValidator), getStudentPiiById);
 router.get('/:id', validate(studentIdValidator), getStudentById);
