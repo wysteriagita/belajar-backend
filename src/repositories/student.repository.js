@@ -66,6 +66,7 @@ const findStudents = async ({
   page = 1,
   limit = 10,
   search,
+  nama,
   nisn,
   nis,
   nikHash,
@@ -91,6 +92,7 @@ const findStudents = async ({
 
   const where = {
     deletedAt: null,
+    ...(nama && { nama: { contains: nama, mode: 'insensitive' } }),
     ...(nisn !== undefined && { nisn }),
     ...(nis !== undefined && { nis }),
     ...(nikHash !== undefined && { nikHash }),
